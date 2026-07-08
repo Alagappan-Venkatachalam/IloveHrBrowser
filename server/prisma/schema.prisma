@@ -1,0 +1,53 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Recruiter {
+  id        String             @id @default(uuid())
+  email     String             @unique
+  name      String
+  sessions  InterviewSession[]
+  createdAt DateTime           @default(now())
+}
+
+model InterviewSession {
+  id                      String              @id @default(uuid())
+  recruiterId             String
+  recruiter               Recruiter           @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  studentMobile           String
+  studentName             String
+  activeMode              String              @default("CODING") // CODING, MCQ, SYSTEM_DESIGN
+  status                  String              @default("PENDING") // PENDING, ACTIVE, COMPLETED
+  codeSnippet             String              @default("")
+  codeLanguage            String              @default("javascript")
+  mcqQuestion             String              @default("") // Stores active JSON MCQ string
+  systemDesignHeadline    String              @default("")
+  systemDesignRequirements String              @default("")
+  violations              SecurityViolation[]
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+}
+
+model OtpVerification {
+  id           String   @id @default(uuid())
+  mobileNumber String
+  hash         String   @unique
+  code         String
+  verified     Boolean  @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+model SecurityViolation {
+  id         String           @id @default(uuid())
+  sessionId  String
+  session    InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventType  String
+  detail     String
+  timestamp  DateTime         @default(now())
+}
